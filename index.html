@@ -112,7 +112,7 @@ const missions=[
 ["Activo mi plan","Una acción que voy a realizar esta semana para prepararme mejor es…","Pensá en una acción concreta."],
 ["Me hablo con confianza","Cuando sienta que no puedo, quiero recordarme que…","Escribite un mensaje positivo."]
 ];
-
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyN4uU4DWYJTB96-czshLfn678RBISyRvJ-ZuNtwJRLwmDuy2NpqchOZRy5zNkUYqQwpA/exec";
 let index=0;
 let answers=["","","","",""];
 
@@ -163,15 +163,64 @@ function previous(){
  }
 }
 
-function finish(){
- document.getElementById("game").classList.add("hidden");
- document.getElementById("result").classList.remove("hidden");
- document.getElementById("certname").textContent=document.getElementById("student").value;
- document.getElementById("commitment").textContent=answers[3];
- document.getElementById("badges").innerHTML=
- ["💛 Valiente","🧠 Consciente","🎯 Enfocado","🔥 Perseverante","🚀 Misión cumplida"]
- .map(x=>'<span class="badge">'+x+'</span>').join("");
+
+async function finish(){
+
+  const seccion = document.getElementById("section").value;
+  const estudiante = document.getElementById("student").value.trim();
+
+  // Mostrar el diploma y conservar sus datos
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+
+  document.getElementById("certname").textContent = estudiante;
+  document.getElementById("commitment").textContent = answers[3];
+
+  document.getElementById("badges").innerHTML =
+    ["💛 Valiente","🧠 Consciente","🎯 Enfocado","🔥 Perseverante","🚀 Misión cumplida"]
+    .map(x => '<span class="badge">' + x + '</span>').join("");
+
+  // Enviar participación con nombre
+  const participacion = {
+    type: "participation",
+    name: estudiante,
+    section: seccion
+  };
+
+  // Enviar reflexiones sin nombre
+  const reflexion = {
+    type: "reflection",
+    section: seccion,
+    answers: answers
+  };
+
+  try {
+
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(participacion)
+    });
+
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(reflexion)
+    });
+
+    console.log("Solicitudes de envío realizadas.");
+
+  } catch(error) {
+    console.error("Error al enviar:", error);
+  }
 }
+
 
 function restart(){
  index=0;

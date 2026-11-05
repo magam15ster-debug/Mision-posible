@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Misión Posible</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eaf2ff,#f8efff,#e5fff4);color:#1c2940}
+header{background:#142544;color:white;text-align:center;padding:28px 15px;border-radius:0 0 25px 25px}
+header h1{font-size:38px;margin:10px}
+.logo{color:#bcefe0;letter-spacing:2px;font-size:12px}
+main{max-width:700px;margin:25px auto;padding:0 14px 35px}
+.card{background:white;padding:23px;border-radius:20px;margin-bottom:18px;box-shadow:0 8px 25px #14254415}
+h2{color:#142544}
+input,select,textarea{width:100%;padding:13px;border:1px solid #ccd7e6;border-radius:12px;font-size:16px;margin:9px 0 16px}
+textarea{min-height:100px}
+button{background:#315b9a;color:white;border:0;border-radius:12px;padding:14px 18px;font-weight:bold;font-size:15px;cursor:pointer}
+.secondary{background:#eaf0fb;color:#142544}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+.hidden{display:none}
+.muted{font-size:13px;color:#64748b;line-height:1.5}
+.progress{height:9px;background:#e6edf5;border-radius:10px;margin:15px 0}
+.bar{height:9px;background:#45b89a;width:0;border-radius:10px}
+.prompt{font-size:21px;font-weight:bold;line-height:1.4;margin:20px 0}
+.badge{display:inline-block;background:#fff1cc;color:#725000;padding:9px 12px;border-radius:25px;margin:4px;font-size:13px;font-weight:bold}
+.result{text-align:center;background:#142544;color:white}
+.result h2{color:white}
+.diploma{background:#fffdf6;color:#1c2940;border:2px dashed #c79a39;padding:20px;border-radius:15px;margin-top:20px}
+.diploma h2{color:#315b9a}
+@media print{header,.no-print,#welcome,#game,footer{display:none!important}.result{background:white;color:black;box-shadow:none}.result h2{color:black}}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">UNA EXPERIENCIA PARA CREER EN VOS</div>
+<h1>🚀 MISIÓN POSIBLE</h1>
+<div>¡Yo puedo, yo me preparo, yo lo logro!</div>
+</header>
+
+<main>
+
+<section class="card" id="welcome">
+<h2>¡Tu próximo nivel comienza aquí!</h2>
+<p>Se acercan los exámenes. Esta misión es un espacio para reconocer lo que sentís, descubrir tus fortalezas y elegir cómo dar lo mejor de vos.</p>
+
+<label><b>Seleccioná tu sección:</b></label>
+<select id="section">
+<option value="">Seleccioná una sección</option>
+<option>10-3</option>
+<option>10-4</option>
+</select>
+
+<label><b>Nombre para tu diploma:</b></label>
+<input id="student" placeholder="Escribí tu nombre">
+
+<p class="muted">Tu nombre se utiliza para el diploma. Esta versión de demostración no envía respuestas a la docente ni las almacena en Google Sheets.</p>
+
+<button onclick="start()">Comenzar mi misión ✨</button>
+</section>
+
+<section class="card hidden" id="game">
+<div id="count"></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<h2 id="title"></h2>
+<div class="prompt" id="prompt"></div>
+<textarea id="answer" placeholder="Escribí tu respuesta aquí..."></textarea>
+<p class="muted" id="hint"></p>
+<div class="actions">
+<button class="secondary" id="back" onclick="previous()">← Anterior</button>
+<button id="next" onclick="advance()">Continuar →</button>
+</div>
+</section>
+
+<section class="card result hidden" id="result">
+<div style="font-size:48px">🏆✨🚀</div>
+<h2>¡MISIÓN CUMPLIDA!</h2>
+<p>¡Lo lograste! Cada pequeño paso cuenta. Prepararte, pedir ayuda y confiar en tu capacidad también son formas de valentía.</p>
+
+<div id="badges"></div>
+
+<div class="diploma">
+<div style="color:#8b6a1e;font-weight:bold">DIPLOMA DE COMPROMISO PERSONAL</div>
+<h2>¡Voy por mis metas!</h2>
+<p>Este reconocimiento es para:</p>
+<h2 id="certname"></h2>
+<p>Por completar la Misión Posible y comprometerse a prepararse con responsabilidad, confianza y perseverancia.</p>
+<b>Mi compromiso:</b>
+<p id="commitment"></p>
+<p>Un paso a la vez. Un examen a la vez. Un logro a la vez.</p>
+</div>
+
+<div class="actions no-print">
+<button onclick="window.print()">Imprimir o guardar diploma</button>
+<button class="secondary" onclick="restart()">Volver a comenzar</button>
+</div>
+</section>
+
+<footer class="muted" style="text-align:center">
+MI PRÓXIMO NIVEL · Un examen no define todo lo que sos.
+</footer>
+
+</main>
+
+<script>
+const missions=[
+["Reconozco mis emociones","Cuando pienso en los próximos exámenes, me siento…","Reconocer lo que sentís es el primer paso."],
+["Descubro mis fortalezas","Una capacidad que puedo aprovechar para superar este periodo es…","Pensá en algo que ya hayas logrado."],
+["Cambio una excusa por una decisión","Algo que necesito dejar de hacer para prepararme mejor es…","Elegí algo que podás cambiar."],
+["Activo mi plan","Una acción que voy a realizar esta semana para prepararme mejor es…","Pensá en una acción concreta."],
+["Me hablo con confianza","Cuando sienta que no puedo, quiero recordarme que…","Escribite un mensaje positivo."]
+];
+
+let index=0;
+let answers=["","","","",""];
+
+function start(){
+ let section=document.getElementById("section").value;
+ let student=document.getElementById("student").value.trim();
+ if(!section||!student){
+  alert("Seleccioná tu sección y escribí tu nombre para el diploma.");
+  return;
+ }
+ document.getElementById("welcome").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ showQuestion();
+}
+
+function showQuestion(){
+ let q=missions[index];
+ document.getElementById("count").textContent="MISIÓN "+(index+1)+" DE 5";
+ document.getElementById("bar").style.width=(index*20)+"%";
+ document.getElementById("title").textContent=q[0];
+ document.getElementById("prompt").textContent=q[1];
+ document.getElementById("hint").textContent=q[2];
+ document.getElementById("answer").value=answers[index];
+ document.getElementById("back").disabled=index===0;
+ document.getElementById("next").textContent=index===4?"Completar misión 🏆":"Guardar y continuar →";
+}
+
+function advance(){
+ let value=document.getElementById("answer").value.trim();
+ if(!value){
+  alert("Escribí tu respuesta antes de continuar.");
+  return;
+ }
+ answers[index]=value;
+ if(index<4){
+  index++;
+  showQuestion();
+ }else{
+  finish();
+ }
+}
+
+function previous(){
+ answers[index]=document.getElementById("answer").value;
+ if(index>0){
+  index--;
+  showQuestion();
+ }
+}
+
+function finish(){
+ document.getElementById("game").classList.add("hidden");
+ document.getElementById("result").classList.remove("hidden");
+ document.getElementById("certname").textContent=document.getElementById("student").value;
+ document.getElementById("commitment").textContent=answers[3];
+ document.getElementById("badges").innerHTML=
+ ["💛 Valiente","🧠 Consciente","🎯 Enfocado","🔥 Perseverante","🚀 Misión cumplida"]
+ .map(x=>'<span class="badge">'+x+'</span>').join("");
+}
+
+function restart(){
+ index=0;
+ answers=["","","","",""];
+ document.getElementById("result").classList.add("hidden");
+ document.getElementById("welcome").classList.remove("hidden");
+ document.getElementById("student").value="";
+ document.getElementById("section").value="";
+}
+</script>
+</body>
+</html>
